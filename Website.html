@@ -1,6 +1,66 @@
-<html>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <title>Natural Disaster Data Entry</title>
+    <script>
+        window.onload = function() {
+            document.getElementById("entryForm").onsubmit = function(event) {
+                event.preventDefault();
+                const name = document.getElementById("name").value;
+                const location = document.getElementById("location").value;
+                const date = document.getElementById("date").value;
+                const intensity = document.getElementById("intensity").value;
 
+                const entryDisplay = document.getElementById("entriesDisplay");
+                const newEntry = document.createElement("p");
+                newEntry.innerHTML = `<strong>Name:</strong> ${name}, <strong>Location:</strong> ${location}, <strong>Date:</strong> ${date}, <strong>Intensity:</strong> ${intensity}`;
+                entryDisplay.appendChild(newEntry);
+            };
+        };
+    </script>
+</head>
+<body>
+    <nav class="container-fluid">
+        <ul>
+            <li><strong>Data Entry</strong></li>
+        </ul>
+        <ul>
+            <li><a href="#entryForm">Enter Data</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#" role="button">Contact</a></li>
+        </ul>
+    </nav>
 
+    <main class="container">
+        <div class="grid">
+            <section>
+                <hgroup>
+                    <h2>Natural Disaster Data Entry</h2>
+                    <h3>Enter the details of the disaster</h3>
+                </hgroup>
+                <form id="entryForm" class="grid">
+                    <input type="text" id="name" name="name" placeholder="Disaster Name" aria-label="Disaster Name" required>
+                    <input type="text" id="location" name="location" placeholder="Location" aria-label="Location" required>
+                    <input type="date" id="date" name="date" aria-label="Date" required>
+                    <input type="number" id="intensity" name="intensity" placeholder="Intensity" aria-label="Intensity" required>
+                    <button type="submit">Submit</button>
+                </form>
+                <div id="entriesDisplay">
+                    <h3>Latest Entries</h3>
+                    <!-- Entries will be displayed here -->
+                </div>
+            </section>
+        </div>
+    </main>
 
+    <footer class="container">
+        <small>
+            <a href="#">Privacy Policy</a> • <a href="#">Terms of Use</a>
+        </small>
+    </footer>
+</body>
 </html>
