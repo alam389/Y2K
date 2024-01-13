@@ -7,10 +7,21 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/1.0.11/jquery.csv.min.js"></script>
 </head>
 <body>
+    <input type="text" id="searchInput" onkeyup="searchFunction()" placeholder="Search by name..."> <!--Search bar-->
+
     <input type="file" id="csvFileInput" accept=".csv">
     <div id="csvDataContainer"></div>
 
-    <script src="readCSV.js"></script>
+    <form id="dataEntryForm">
+        <input type="text" id="name" name="name" placeholder="Name" required>
+        <input type="text" id="longitude" name="longitude" placeholder="Longitude" required>
+        <input type="text" id="latitude" name="latitude" placeholder="Latitude" required>
+        <input type="date" id="date" name="date" placeholder="Date" required>
+        <input type="text" id="intensity" name="intensity" placeholder="Intensity" required>
+        <input type="text" id="disasterType" name="disasterType" placeholder="Type of Disaster" required>
+        <button type="submit">Add Entry</button>
+    </form>
+
     <script>
         $(document).ready(function () {
             var originalData; // To store the original CSV data
@@ -20,7 +31,7 @@
             $('#csvFileInput').on('change', function (e) {
                 var file = e.target.files[0];
                 var reader = new FileReader();
-                
+               
                 reader.onload = function (e) {
                     var csvData = e.target.result;
                     originalData = $.csv.toArrays(csvData);
@@ -61,6 +72,49 @@
                 });
             }
 
+            // Load data from local storage upon initialization
+            originalData = loadDataFromLocalStorage() || [];
+            if (originalData.length > 0) {
+                displayCSVData(originalData);
+            }
+
+            // Add event listener for the form submission
+            $('#dataEntryForm').on('submit', function (e) {
+                e.preventDefault(); // Prevent the actual form submission
+                
+                // Collect the form data
+                var name = $('#name').val().trim();
+                var longitude = $('#longitude').val().trim();
+                var latitude = $('#latitude').val().trim();
+                var date = $('#date').val().trim();
+                var intensity = $('#intensity').val().trim();
+                var disasterType = $('#disasterType').val().trim();
+
+                // Check if all fields are filled
+                if (name && longitude && latitude && date && intensity && disasterType) {
+                    var newData = [name, longitude, latitude, date, intensity, disasterType];
+                    originalData.push(newData); // Add the new data to the originalData array
+                    displayCSVData(originalData); // Update the display
+                    saveDataToLocalStorage(originalData); // Save the updated data to local storage
+                } else {
+                    alert('Please fill in all fields.');
+                }
+
+                // Clear the form fields after submission
+                $(this).find('input').val('');
+            });
+
+            // Function to save data to local storage
+            function saveDataToLocalStorage(data) {
+                localStorage.setItem('csvData', JSON.stringify(data));
+            }
+
+            // Function to load data from local storage
+            function loadDataFromLocalStorage() {
+                var storedData = localStorage.getItem('csvData');
+                return storedData ? JSON.parse(storedData) : [];
+            }
+
             function sortTable(columnIndex) {
                 // Get the table, rows, and create an array to store the rows
                 var table = $('table tbody');
@@ -73,12 +127,12 @@
                     $('td', row).each(function (index, cell) {
                         rowData.push($(cell).text());
                     });
-                    dataArray.push({ row: row, value: parseCellValue(rowData[columnIndex]) });
+                    dataArray.push({ row: row, value: rowData[columnIndex] });
                 });
 
                 // Sort the dataArray based on the values in the selected column
                 dataArray.sort(function (a, b) {
-                    return (a.value - b.value) * sortOrder;
+                    return a.value.localeCompare(b.value, undefined, { numeric: true }) * sortOrder;
                 });
 
                 // Clear the table and append the sorted rows
@@ -87,13 +141,28 @@
                     table.append(item.row);
                 });
             }
-
-            function parseCellValue(value) {
-                // Convert the cell value to a number if it's a valid number, otherwise, return the original value
-                var numericValue = parseFloat(value);
-                return isNaN(numericValue) ? value : numericValue;
-            }
         });
+
+
+        function searchFunction() {
+          // Declare variables
+            var input, filter, ul, li, a, i, txtValue;
+            input = document.getElementById('searchInput');
+            filter = input.value.toUpperCase();
+            ul = document.getElementById("csvDataContainer");
+            li = ul.getElementsByTagName('tr');
+
+            // Loop through all list items, and hide those who don't match the search query
+            for (i = 1; i < li.length; i++) {
+                txtValue = li[i].textContent;
+
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                li[i].style.display = "";
+                } else {
+                li[i].style.display = "none";
+                }
+            }
+        }
     </script>
 </body>
 </html>
