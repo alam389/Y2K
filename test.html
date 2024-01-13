@@ -1,0 +1,119 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CSV Reader</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/1.0.11/jquery.csv.min.js"></script>
+</head>
+<body>
+    <input type="text" id="searchInput" onkeyup="searchFunction()" placeholder="Search by name..."> <!--Search bar-->
+
+    <input type="file" id="csvFileInput" accept=".csv">
+    <div id="csvDataContainer"></div>
+
+    <script src="readCSV.js"></script>
+    <script>
+        $(document).ready(function () {
+            var originalData; // To store the original CSV data
+            var sortedColumn = -1; // To store the index of the currently sorted column
+            var sortOrder = 1; // 1 for ascending, -1 for descending
+
+            $('#csvFileInput').on('change', function (e) {
+                var file = e.target.files[0];
+                var reader = new FileReader();
+               
+                reader.onload = function (e) {
+                    var csvData = e.target.result;
+                    originalData = $.csv.toArrays(csvData);
+                    displayCSVData(originalData);
+                };
+
+                reader.readAsText(file);
+            });
+
+            function displayCSVData(data) {
+                var html = '<table border="1"><thead><tr>';
+                data[0].forEach(function (heading, columnIndex) {
+                    html += '<th>' + heading + '<button class="sortButton" data-column="' + columnIndex + '">Sort</button></th>';
+                });
+                html += '</tr></thead><tbody>';
+                for (var i = 1; i < data.length; i++) {
+                    html += '<tr>';
+                    for (var j = 0; j < data[i].length; j++) {
+                        html += '<td>' + data[i][j] + '</td>';
+                    }
+                    html += '</tr>';
+                }
+                html += '</tbody></table>';
+                $('#csvDataContainer').html(html);
+
+                // Add click event listener for each sort button
+                $('.sortButton').off('click').on('click', function () {
+                    var columnIndex = $(this).data('column');
+                    if (columnIndex === sortedColumn) {
+                        // Toggle the sort order if the same column is clicked again
+                        sortOrder *= -1;
+                    } else {
+                        // Reset the sort order if a different column is clicked
+                        sortOrder = 1;
+                    }
+                    sortedColumn = columnIndex;
+                    sortTable(columnIndex);
+                });
+            }
+
+            function sortTable(columnIndex) {
+                // Get the table, rows, and create an array to store the rows
+                var table = $('table tbody');
+                var rows = $('tr', table);
+                var dataArray = [];
+
+                // Populate the dataArray with rows and their corresponding values in the selected column
+                rows.each(function (index, row) {
+                    var rowData = [];
+                    $('td', row).each(function (index, cell) {
+                        rowData.push($(cell).text());
+                    });
+                    dataArray.push({ row: row, value: rowData[columnIndex] });
+                });
+
+                // Sort the dataArray based on the values in the selected column
+                dataArray.sort(function (a, b) {
+                    return a.value.localeCompare(b.value, undefined, { numeric: true }) * sortOrder;
+                });
+
+                // Clear the table and append the sorted rows
+                table.html('');
+                dataArray.forEach(function (item) {
+                    table.append(item.row);
+                });
+            }
+        });
+
+
+        function searchFunction() {
+          // Declare variables
+            var input, filter, ul, li, a, i, txtValue;
+            input = document.getElementById('searchInput');
+            filter = input.value.toUpperCase();
+            ul = document.getElementById("csvDataContainer");
+            li = ul.getElementsByTagName('tr');
+
+            // Loop through all list items, and hide those who don't match the search query
+            for (i = 1; i < li.length; i++) {
+                txtValue = li[i].textContent;
+
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                li[i].style.display = "";
+                } else {
+                li[i].style.display = "none";
+                }
+            }
+        }
+    </script>
+</body>
+</html>
+
+
